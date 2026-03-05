@@ -9,7 +9,17 @@ A Streamlit app for generating branded short links for Kiddom content URLs. Shor
 1. Paste a Kiddom URL (or load a Google Sheet of URLs)
 2. Click **Shorten** — the app generates a `kiddom-xxxxxx` short code and saves it to `data/urls.json`
 3. A GitHub Action automatically builds static redirect pages and deploys them to GitHub Pages
-4. The short link is live at `https://pedagocode.github.io/kiddom-url-shortener/kiddom-xxxxxx` within ~2 minutes
+4. The short link is live within ~2 minutes
+
+### Link format
+
+| Setup | Short link format |
+|-------|-------------------|
+| Default (no custom domain) | `https://pedagocode.github.io/kiddom-url-shortener/kiddom-xxxxxx` |
+| With `links.kiddom.co` CNAME | `https://links.kiddom.co/kiddom-xxxxxx` |
+
+> The custom domain removes the `/kiddom-url-shortener/` path segment automatically.
+> Once IT sets up the DNS CNAME, all links shorten to `links.kiddom.co/kiddom-xxxxxx`.
 
 ---
 
@@ -43,15 +53,25 @@ In the repo: **Settings → Pages → Source → GitHub Actions**
 
 This only needs to be done once. After that, every push to `data/urls.json` triggers an automatic deploy.
 
-### 3. Custom Domain (optional)
+### 3. Custom Domain (optional, recommended)
 
-When ready, ask IT to add a DNS CNAME record:
+Ask IT to add one DNS record:
 
 ```
 CNAME  links.kiddom.co  ->  pedagocode.github.io
 ```
 
-Then uncomment the CNAME line in `.github/workflows/deploy-redirects.yml`.
+Then in the repo: **Settings → Pages → Custom domain** → enter `links.kiddom.co`
+
+GitHub will provision an SSL certificate automatically. Once live, short links will be:
+```
+https://links.kiddom.co/kiddom-xxxxxx
+```
+
+Also update `PAGES_BASE` in `Toolbox/url_shortener.py`:
+```python
+PAGES_BASE = "https://links.kiddom.co"
+```
 
 ---
 
@@ -89,6 +109,5 @@ redirect-site/
 
 - Connect to Snowflake for enterprise-grade storage and access control
 - Gate app access via Snowflake OAuth (Kiddom staff only)
-- Custom domain `links.kiddom.co` via DNS CNAME
 - Link revocation and expiration
 - Analytics on link clicks
