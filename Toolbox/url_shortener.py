@@ -1,6 +1,6 @@
 import hashlib
 import sqlite3
-import io
+import json
 from datetime import datetime
 
 import pandas as pd
@@ -22,6 +22,22 @@ def get_conn():
     return conn
 
 
+ALLOWED_DOMAINS = (
+    "kiddom.co",
+    "app.kiddom.co",
+    "amazonaws.com",
+)
+
+
+def is_allowed_url(url: str) -> bool:
+    from urllib.parse import urlparse
+    try:
+        host = urlparse(url).netloc.lower()
+        return any(host == d or host.endswith("." + d) for d in ALLOWED_DOMAINS)
+    except Exception:
+        return False
+
+
 def make_short_code(url: str) -> str:
     digest = hashlib.sha256(url.strip().encode()).hexdigest()[:6]
     return f"kiddom-{digest}"
@@ -36,7 +52,10 @@ def save_mapping(conn, short_code: str, original_url: str):
 
 
 def load_all_mappings(conn) -> pd.DataFrame:
-    return pd.read_sql("SELECT short_code, original_url, created_at FROM url_mappings ORDER BY created_at DESC", conn)
+    return pd.read_sql(
+        "SELECT short_code, original_url, created_at FROM url_mappings ORDER BY created_at DESC",
+        conn,
+    )
 
 
 st.set_page_config(page_title="Kiddom URL Shortener", page_icon="🔗", layout="centered")
@@ -45,7 +64,7 @@ st.caption("Generate branded short codes for Kiddom content links.")
 
 conn = get_conn()
 
-tab1, tab2, tab3 = st.tabs(["Single URL", "Bulk CSV", "View All Mappings"])
+tab1, tab2, tab3, tab4 = st.tabs(["Single URL", "Bulk CSV", "View All Mappings", "Deploy"])
 
 # ── Tab 1: Single URL ────────────────────────────────────────────────────────
 with tab1:
@@ -57,12 +76,15 @@ with tab1:
             st.warning("Please enter a URL.")
         elif not url.startswith(("http://", "https://")):
             st.error("URL must start with http:// or https://")
+        elif not is_allowed_url(url):
+            st.error("Only Kiddom platform URLs and Kiddom AWS assets are allowed.")
         else:
             code = make_short_code(url)
             save_mapping(conn, code, url)
             st.success("Short code generated!")
             st.code(code, language=None)
             st.caption(f"Original: {url}")
+            st.info("Go to the **Deploy** tab to publish this link.")
 
 # ── Tab 2: Bulk CSV ──────────────────────────────────────────────────────────
 with tab2:
@@ -76,16 +98,15 @@ with tab2:
         url_col = st.selectbox("Which column contains the URLs?", options=df.columns.tolist())
 
         if st.button("Generate Short Codes", type="primary", key="bulk"):
-            invalid = df[url_col].dropna().apply(
-                lambda u: not str(u).strip().startswith(("http://", "https://"))
-            )
-            if invalid.any():
-                st.warning(f"{invalid.sum()} row(s) skipped — values don't look like URLs.")
-
             codes = []
+            skipped = 0
             for raw in df[url_col]:
                 if pd.isna(raw) or not str(raw).strip().startswith(("http://", "https://")):
                     codes.append("")
+                    skipped += 1
+                elif not is_allowed_url(str(raw).strip()):
+                    codes.append("BLOCKED — not a Kiddom URL")
+                    skipped += 1
                 else:
                     url = str(raw).strip()
                     code = make_short_code(url)
@@ -93,7 +114,8 @@ with tab2:
                     codes.append(code)
 
             df["short_url"] = codes
-            st.success(f"Generated {sum(1 for c in codes if c)} short codes.")
+            generated = sum(1 for c in codes if c and not c.startswith("BLOCKED"))
+            st.success(f"Generated {generated} short codes. {skipped} rows skipped.")
             st.dataframe(df, use_container_width=True)
 
             csv_bytes = df.to_csv(index=False).encode()
@@ -103,6 +125,7 @@ with tab2:
                 file_name="urls_with_short_codes.csv",
                 mime="text/csv",
             )
+            st.info("Go to the **Deploy** tab to publish these links.")
 
 # ── Tab 3: All Mappings ──────────────────────────────────────────────────────
 with tab3:
@@ -116,8 +139,47 @@ with tab3:
 
         csv_all = all_df.to_csv(index=False).encode()
         st.download_button(
-            label="⬇️ Download All Mappings",
+            label="⬇️ Download All Mappings as CSV",
             data=csv_all,
             file_name="all_kiddom_mappings.csv",
             mime="text/csv",
+        )
+
+# ── Tab 4: Deploy ────────────────────────────────────────────────────────────
+with tab4:
+    st.subheader("Deploy Redirect Pages")
+    st.write(
+        "Export your URL mappings as `urls.json`, commit it to the repo, "
+        "and the GitHub Action will automatically generate and deploy the redirect pages."
+    )
+
+    all_df = load_all_mappings(conn)
+
+    if all_df.empty:
+        st.info("No mappings to deploy yet.")
+    else:
+        records = all_df[["short_code", "original_url"]].to_dict(orient="records")
+        json_bytes = json.dumps(records, indent=2).encode()
+
+        st.download_button(
+            label="⬇️ Download urls.json",
+            data=json_bytes,
+            file_name="urls.json",
+            mime="application/json",
+        )
+
+        st.markdown("**After downloading:**")
+        st.code(
+            "# 1. Move urls.json to the data/ folder in the repo\n"
+            "# 2. Commit and push:\n"
+            "git add data/urls.json\n"
+            'git commit -m "Update URL mappings"\n'
+            "git push\n\n"
+            "# GitHub Action deploys redirect pages automatically (~2 min)",
+            language="bash",
+        )
+
+        st.markdown("---")
+        st.caption(
+            "**Coming soon:** When connected to Snowflake, this will trigger deployment automatically."
         )
