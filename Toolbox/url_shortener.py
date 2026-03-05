@@ -1,21 +1,16 @@
 import base64
 import hashlib
 import json
-import string
 
-import gspread
 import pandas as pd
 import requests
 import streamlit as st
-from google.oauth2.service_account import Credentials
 
 REPO = "pedagocode/kiddom-url-shortener"
 FILE_PATH = "data/urls.json"
 PAGES_BASE = "https://pedagocode.github.io/kiddom-url-shortener"
 
 ALLOWED_DOMAINS = ("kiddom.co", "amazonaws.com")
-
-SHEETS_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 
 # ── GitHub helpers ────────────────────────────────────────────────────────────
@@ -45,24 +40,6 @@ def push_mappings(mappings, sha):
         json={"message": "Update URL mappings", "content": content, "sha": sha},
     )
     return r.status_code in (200, 201)
-
-
-# ── Google Sheets helpers ─────────────────────────────────────────────────────
-
-def get_gspread_client():
-    creds_info = json.loads(st.secrets["GOOGLE_SERVICE_ACCOUNT"])
-    creds = Credentials.from_service_account_info(creds_info, scopes=SHEETS_SCOPES)
-    return gspread.authorize(creds)
-
-
-def write_column_to_sheet(sheet_url: str, col_index: int, values: list):
-    """Write values to a 1-based column index in the first worksheet."""
-    gc = get_gspread_client()
-    ws = gc.open_by_url(sheet_url).get_worksheet(0)
-    # Convert col index to letter (supports up to 26 cols)
-    col_letter = string.ascii_uppercase[col_index - 1]
-    range_notation = f"{col_letter}1:{col_letter}{len(values)}"
-    ws.update(range_notation, [[v] for v in values])
 
 
 # ── URL helpers ───────────────────────────────────────────────────────────────
@@ -139,25 +116,11 @@ with tab1:
 
 # ── Google Sheet ──────────────────────────────────────────────────────────────
 with tab2:
-    has_sheets_creds = "GOOGLE_SERVICE_ACCOUNT" in st.secrets
-
-    if not has_sheets_creds:
-        st.warning(
-            "**GOOGLE_SERVICE_ACCOUNT not set.** "
-            "Add your Google service account JSON to Streamlit secrets to enable write-back. "
-            "See setup instructions in the repo README."
-        )
-
-    st.caption("Sheet must be shared with the service account email (and set to Viewer or Editor).")
-    sheet_input = st.text_input(
-        "Paste Google Sheet URL",
-        placeholder="https://docs.google.com/spreadsheets/d/...",
-    )
+    st.caption("Sheet must be shared: File → Share → Anyone with the link → Viewer")
+    sheet_input = st.text_input("Paste Google Sheet URL", placeholder="https://docs.google.com/spreadsheets/d/...")
 
     if "sheet_df" not in st.session_state:
         st.session_state.sheet_df = None
-    if "sheet_url" not in st.session_state:
-        st.session_state.sheet_url = None
 
     if st.button("Load Sheet"):
         if not sheet_input.strip():
@@ -168,7 +131,6 @@ with tab2:
                     sheet_id = sheet_input.strip().split("/d/")[1].split("/")[0]
                     csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
                     st.session_state.sheet_df = pd.read_csv(csv_url)
-                    st.session_state.sheet_url = sheet_input.strip()
                 except Exception:
                     st.error("Could not load sheet. Make sure it's shared publicly and the URL is correct.")
                     st.session_state.sheet_df = None
@@ -178,20 +140,11 @@ with tab2:
         st.success(f"Loaded {len(df)} rows.")
         st.dataframe(df.head(), use_container_width=True)
 
-        # Auto-detect URL column
         url_col = next(
             (col for col in df.columns if df[col].astype(str).str.startswith("http").any()),
             df.columns[0],
         )
-        cols = df.columns.tolist()
-
-        # Determine short url column index (1-based for Sheets API)
-        if "short url" in cols:
-            short_col_1based = cols.index("short url") + 1
-        else:
-            short_col_1based = cols.index(url_col) + 2  # next column after URL col
-
-        st.caption(f"URLs detected in column: **{url_col}** — short URLs will be written in column {short_col_1based}.")
+        st.caption(f"URLs detected in column: **{url_col}** — short URLs will be written in the next column.")
 
         if st.button("Shorten All", type="primary"):
             entries, short_codes = [], []
@@ -216,31 +169,27 @@ with tab2:
                 st.caption(f"{skipped} empty/invalid row(s) skipped.")
 
             if entries:
-                # Deploy to GitHub
+                df_out = df.copy()
+                if "short url" in df_out.columns:
+                    df_out["short url"] = short_codes
+                else:
+                    url_col_idx = df_out.columns.tolist().index(url_col)
+                    df_out.insert(url_col_idx + 1, "short url", short_codes)
+
                 with st.spinner(f"Deploying {len(entries)} links…"):
                     ok, msg = shorten_and_deploy(entries)
 
-                if not ok:
-                    st.error(msg)
-                else:
+                if ok:
                     st.success(msg)
-
-                    # Write back to Google Sheet
-                    if has_sheets_creds:
-                        with st.spinner("Writing short URLs back to sheet…"):
-                            try:
-                                header_and_values = ["short url"] + short_codes
-                                write_column_to_sheet(
-                                    st.session_state.sheet_url,
-                                    short_col_1based,
-                                    header_and_values,
-                                )
-                                st.success("Short URLs written to your Google Sheet.")
-                            except Exception as e:
-                                st.error(f"Could not write to sheet: {e}")
-                                st.caption("Make sure the sheet is shared with the service account email as Editor.")
-                    else:
-                        st.info("Sheet write-back skipped — GOOGLE_SERVICE_ACCOUNT not configured.")
+                    st.dataframe(df_out[[url_col, "short url"]], use_container_width=True)
+                    st.download_button(
+                        "⬇️ Download updated sheet as CSV",
+                        df_out.to_csv(index=False).encode(),
+                        "urls_with_short_codes.csv",
+                        "text/csv",
+                    )
+                else:
+                    st.error(msg)
 
 # ── All Links ─────────────────────────────────────────────────────────────────
 with tab3:
