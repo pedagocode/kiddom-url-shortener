@@ -172,8 +172,11 @@ with tab2:
 
             if entries:
                 df_out = df.copy()
-                url_col_idx = df_out.columns.tolist().index(url_col)
-                df_out.insert(url_col_idx + 1, "short url", short_codes)
+                if "short url" in df_out.columns:
+                    df_out["short url"] = short_codes
+                else:
+                    url_col_idx = df_out.columns.tolist().index(url_col)
+                    df_out.insert(url_col_idx + 1, "short url", short_codes)
 
                 with st.spinner(f"Deploying {len(entries)} links…"):
                     ok, msg = shorten_and_deploy(entries)
