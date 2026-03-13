@@ -53,10 +53,11 @@ def is_allowed(url: str) -> bool:
         host = parsed.netloc.lower()
         if not any(host == d or host.endswith("." + d) for d in ALLOWED_DOMAINS):
             return False
-        # Block tree:version UUID URLs — only vanity slugs allowed
-        # UUID pattern: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-        uuid_pat = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
-        if re.search(uuid_pat, parsed.path, re.IGNORECASE):
+        # Block tree:version UUID URLs (two UUIDs joined by a colon)
+        # e.g. /curriculum/uuid:uuid  — but allow single UUIDs in paths
+        # like /curriculum/OSES.US.CH/node/uuid
+        uuid = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+        if re.search(rf"{uuid}:{uuid}", parsed.path, re.IGNORECASE):
             return False
         return True
     except Exception:
@@ -169,9 +170,21 @@ button[data-testid="stBaseButton-primary"]:hover {
     box-shadow: 0 0 0 1px #EF6C56 !important;
 }
 
-/* Body text color */
+/* Force light theme regardless of browser dark mode */
 .stApp {
     color: #3D3D3D;
+    background-color: #FFFFFF !important;
+    color-scheme: light !important;
+}
+html, body {
+    background-color: #FFFFFF !important;
+    color-scheme: light !important;
+}
+[data-testid="stHeader"] {
+    background-color: #FFFFFF !important;
+}
+[data-testid="stSidebar"] {
+    background-color: #F8F8F8 !important;
 }
 </style>
 
