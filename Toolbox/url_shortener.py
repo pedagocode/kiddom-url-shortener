@@ -144,14 +144,22 @@ html, body {
 [data-testid="stToolbar"] svg {
     color: #242D2C !important;
 }
+/* Filled shapes (icons like star, GitHub) use fill */
 [data-testid="stToolbar"] svg path,
-[data-testid="stToolbar"] svg line,
 [data-testid="stToolbar"] svg circle,
 [data-testid="stHeader"] svg path,
-[data-testid="stHeader"] svg line,
 [data-testid="stHeader"] svg circle {
     fill: currentColor !important;
-    stroke: none !important;
+}
+/* Line-based shapes (hamburger menu icon) use stroke */
+[data-testid="stToolbar"] svg line,
+[data-testid="stHeader"] svg line {
+    stroke: currentColor !important;
+}
+/* Prevent SVG containers from having a filled background */
+[data-testid="stToolbar"] svg rect,
+[data-testid="stHeader"] svg rect {
+    fill: transparent !important;
 }
 [data-testid="stSidebar"] {
     background-color: #E5E8E7 !important;
@@ -335,6 +343,13 @@ div[data-testid="stAppViewBlockContainer"] [data-baseweb="popover"],
 /* Menu separators */
 [data-testid="stMainMenuPopover"] hr {
     border-color: #D0D0D0 !important;
+}
+/* Hide the theme toggle section entirely (light theme forced via config) */
+[data-testid="stMainMenuPopover"] [data-baseweb="tab-list"],
+[data-testid="stMainMenuPopover"] [data-baseweb="tab-panel"],
+[data-testid="stThemeToggle"],
+[data-testid="stMainMenuPopover"] ul:first-child {
+    display: none !important;
 }
 /* Prevent text overflow in menus */
 [data-testid="stMainMenuPopover"] span,
