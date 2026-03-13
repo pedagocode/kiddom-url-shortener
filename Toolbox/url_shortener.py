@@ -105,18 +105,71 @@ label, p, span, div, h1, h2, h3, h4, h5, h6 {
 
 /* Force light background */
 .stApp {
-    background-color: #FEE1F0 !important;
+    background-color: #EEF1F0 !important;
     color-scheme: light !important;
 }
 html, body {
-    background-color: #FEE1F0 !important;
+    background-color: #EEF1F0 !important;
     color-scheme: light !important;
 }
 [data-testid="stHeader"] {
     background-color: transparent !important;
 }
 [data-testid="stSidebar"] {
-    background-color: #F8F0F4 !important;
+    background-color: #E5E8E7 !important;
+}
+
+/* Brand decorative shapes */
+.stApp::before, .stApp::after {
+    content: '';
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.12;
+}
+.stApp::before {
+    top: 120px;
+    left: -80px;
+    background: radial-gradient(circle 4px, #EF6C56 95%, transparent 100%) 0 0 / 18px 18px;
+}
+.stApp::after {
+    bottom: 40px;
+    right: -80px;
+    background: radial-gradient(circle 4px, #EF6C56 95%, transparent 100%) 0 0 / 18px 18px;
+    border-radius: 50%;
+}
+/* Decorative wave shapes */
+.brand-deco-top, .brand-deco-bottom {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.08;
+}
+.brand-deco-top {
+    top: 200px;
+    right: -40px;
+    width: 200px;
+    height: 400px;
+}
+.brand-deco-bottom {
+    bottom: 80px;
+    left: -40px;
+    width: 200px;
+    height: 400px;
+}
+
+/* All buttons styled (including non-primary) */
+.stButton > button {
+    background-color: #EF6C56 !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+}
+.stButton > button:hover {
+    background-color: #E05A44 !important;
 }
 
 /* Header bar with logo */
@@ -181,7 +234,7 @@ html, body {
     color: #242D2C !important;
 }
 
-/* Primary buttons */
+/* Primary button overrides (same as base, kept for specificity) */
 .stButton > button[kind="primary"],
 button[data-testid="stBaseButton-primary"] {
     background-color: #EF6C56 !important;
@@ -217,14 +270,24 @@ button[data-testid="stBaseButton-primary"]:hover {
 <div class="kiddom-header">
     <svg class="kiddom-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="50" fill="white"/>
-        <text x="50" y="68" text-anchor="middle" fill="#EF6C56"
-              font-family="Lexend, sans-serif" font-weight="700" font-size="60">K</text>
+        <!-- Geometric K: vertical bar + two triangular arms -->
+        <rect x="25" y="22" width="14" height="56" rx="2" fill="#EF6C56"/>
+        <polygon points="39,50 75,24 75,42 50,50" fill="#EF6C56"/>
+        <polygon points="39,50 50,50 75,58 75,76" fill="#EF6C56"/>
     </svg>
     <div class="kiddom-header-text">
         <h1>Kiddom ShortURL</h1>
         <p>Digital forward. Human first.</p>
     </div>
 </div>
+
+<!-- Brand decorative shapes -->
+<svg class="brand-deco-top" viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+    <path d="M200,0 Q120,100 180,200 Q240,300 160,400" fill="none" stroke="#EF6C56" stroke-width="40" stroke-linecap="round"/>
+</svg>
+<svg class="brand-deco-bottom" viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,400 Q80,300 20,200 Q-40,100 40,0" fill="none" stroke="#EF6C56" stroke-width="40" stroke-linecap="round"/>
+</svg>
 """, unsafe_allow_html=True)
 
 if not st.secrets.get("GITHUB_TOKEN"):
