@@ -8,7 +8,7 @@ A Streamlit app for generating branded short links for Kiddom content URLs. Shor
 
 1. Select a **publisher prefix** (IM, EL, OSE, or Odell)
 2. Paste a Kiddom URL (or load a Google Sheet of URLs)
-3. Click **Shorten** — the app generates a publisher-prefixed short code (e.g., `IM-a1b2c3`) and saves it to `data/urls.json`
+3. Click **Shorten** — the app generates a publisher-prefixed short code (e.g., `IM-k3xn7f`) and saves it to `data/urls.json`
 4. A GitHub Action automatically builds static redirect pages and deploys them to GitHub Pages
 5. The short link is live within ~2 minutes
 
@@ -16,10 +16,10 @@ A Streamlit app for generating branded short links for Kiddom content URLs. Shor
 
 | Publisher | Example short link |
 |-----------|-------------------|
-| IM | `https://links.kiddom.co/IM-a1b2c3` |
+| IM | `https://links.kiddom.co/IM-k3xn7f` |
 | EL | `https://links.kiddom.co/EL-d4e5f6` |
 | OSE | `https://links.kiddom.co/OSE-7a8b9c` |
-| Odell | `https://links.kiddom.co/Odell-1f2e3d` |
+| Odell | `https://links.kiddom.co/Odell-jm2e3d` |
 
 > The custom domain removes the `/kiddom-url-shortener/` path segment automatically.
 > Once IT sets up the DNS CNAME, all links resolve at `links.kiddom.co/<prefix>-<code>`.
@@ -34,6 +34,7 @@ A Streamlit app for generating branded short links for Kiddom content URLs. Shor
 - **URL allowlist** — only `*.kiddom.co` and `*.amazonaws.com` URLs are accepted
 - **Vanity URL restriction** — tree:version UUID pairs (e.g., `uuid:uuid`) are blocked to keep links clean, while single UUIDs in paths are allowed
 - **Deterministic codes** — the same URL always produces the same short code (no duplicates)
+- **Human-friendly alphabet** — short codes use only unambiguous characters (`23456789abcdefghjkmnpqrstuvwxyz`), excluding easily confused pairs like 0/O/o and 1/I/i/l/L
 - **Kiddom branding** — custom UI with Lexend font, coral (#EF6C56) header bar, Kiddom color palette, and decorative brand shapes
 - **Forced light theme** — the app always renders in light mode regardless of the user's OS preference, configured via `.streamlit/config.toml`
 
@@ -71,7 +72,7 @@ Then in the repo: **Settings → Pages → Custom domain** → enter `links.kidd
 
 GitHub will provision an SSL certificate automatically. Once live, short links will be:
 ```
-https://links.kiddom.co/IM-a1b2c3
+https://links.kiddom.co/IM-k3xn7f
 ```
 
 Also update `PAGES_BASE` in `Toolbox/url_shortener.py`:
