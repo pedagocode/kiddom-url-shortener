@@ -1,6 +1,8 @@
 import base64
 import hashlib
 import json
+import re
+import time
 
 import pandas as pd
 import requests
@@ -12,6 +14,9 @@ PAGES_BASE = "https://links.kiddom.co"
 
 ALLOWED_DOMAINS = ("kiddom.co", "amazonaws.com")
 PUBLISHERS = ["IM", "EL", "OSE", "Odell"]
+SHEETS_PATTERN = re.compile(
+    r"^https://docs\.google\.com/spreadsheets/d/([a-zA-Z0-9_-]+)"
+)
 
 # Unambiguous alphabet — excludes characters that are easily misread:
 #   0 / O / o  (zero vs letter O)
@@ -45,13 +50,12 @@ def push_mappings(mappings, sha):
         headers=gh_headers(),
         json={"message": "Update URL mappings", "content": content, "sha": sha},
     )
-    return r.status_code in (200, 201)
+    return r.status_code in (200, 201), r.status_code
 
 
 # ── URL helpers ───────────────────────────────────────────────────────────────
 
 def is_allowed(url: str) -> bool:
-    import re
     from urllib.parse import urlparse
     try:
         parsed = urlparse(url)
@@ -80,21 +84,39 @@ def make_short_code(url: str, publisher: str) -> str:
     return f"{publisher}-{''.join(chars)}"
 
 
+MAX_RETRIES = 3
+
+
 def shorten_and_deploy(new_entries: list[dict]) -> tuple[bool, str]:
-    mappings, sha = fetch_mappings()
-    if sha is None:
-        return False, "Could not reach GitHub. Check your GITHUB_TOKEN secret."
+    for attempt in range(MAX_RETRIES):
+        mappings, sha = fetch_mappings()
+        if sha is None:
+            return False, "Could not reach GitHub. Check your GITHUB_TOKEN secret."
 
-    existing_codes = {m["short_code"] for m in mappings}
-    added = [e for e in new_entries if e["short_code"] not in existing_codes]
-    if not added:
-        return True, "All URLs already exist — no changes needed."
+        # Deduplicate by both short_code AND original_url
+        existing_codes = {m["short_code"] for m in mappings}
+        existing_urls = {m["original_url"] for m in mappings}
+        added = [
+            e for e in new_entries
+            if e["short_code"] not in existing_codes
+            and e["original_url"] not in existing_urls
+        ]
+        if not added:
+            return True, "All URLs already exist, no changes needed."
 
-    mappings.extend(added)
-    ok = push_mappings(mappings, sha)
-    if ok:
-        return True, f"Deployed {len(added)} link(s). Active in ~2 minutes."
-    return False, "Push to GitHub failed. Check your GITHUB_TOKEN permissions."
+        mappings.extend(added)
+        ok, status = push_mappings(mappings, sha)
+        if ok:
+            return True, f"Deployed {len(added)} link(s). Active in ~2 minutes."
+
+        # SHA conflict (another write landed first) -- re-fetch and retry
+        if status == 409 and attempt < MAX_RETRIES - 1:
+            time.sleep(0.5)
+            continue
+
+        return False, "Push to GitHub failed. Check your GITHUB_TOKEN permissions."
+
+    return False, "Push to GitHub failed after retries (concurrent edits). Try again."
 
 
 # ── App ───────────────────────────────────────────────────────────────────────
@@ -357,12 +379,15 @@ with tab2:
         st.session_state.sheet_df = None
 
     if st.button("Load Sheet"):
-        if not sheet_input.strip():
+        raw_sheet = sheet_input.strip()
+        if not raw_sheet:
             st.warning("Paste a Google Sheet URL first.")
+        elif not (match := SHEETS_PATTERN.match(raw_sheet)):
+            st.error("URL must be a Google Sheets link (https://docs.google.com/spreadsheets/d/...).")
         else:
-            with st.spinner("Loading sheet…"):
+            with st.spinner("Loading sheet..."):
                 try:
-                    sheet_id = sheet_input.strip().split("/d/")[1].split("/")[0]
+                    sheet_id = match.group(1)
                     csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
                     st.session_state.sheet_df = pd.read_csv(csv_url)
                 except Exception:
@@ -374,11 +399,19 @@ with tab2:
         st.success(f"Loaded {len(df)} rows.")
         st.dataframe(df.head(), use_container_width=True)
 
-        url_col = next(
-            (col for col in df.columns if df[col].astype(str).str.startswith("http").any()),
-            df.columns[0],
-        )
-        st.caption(f"URLs detected in column: **{url_col}** — short URLs will be written in the next column.")
+        # Find the column with the most valid HTTP(S) URLs
+        best_col, best_count = None, 0
+        for col in df.columns:
+            count = df[col].astype(str).str.match(r"https?://").sum()
+            if count > best_count:
+                best_col, best_count = col, count
+        url_col = best_col
+
+        if url_col is None:
+            st.error("No column with HTTP/HTTPS URLs found in this sheet.")
+            st.stop()
+
+        st.caption(f"URLs detected in column: **{url_col}** ({best_count} URLs) -- short URLs will be written in the next column.")
 
         if st.button("Shorten All", type="primary"):
             entries, short_codes = [], []
