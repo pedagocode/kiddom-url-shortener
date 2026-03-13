@@ -156,10 +156,10 @@ html, body {
 [data-testid="stHeader"] svg line {
     stroke: currentColor !important;
 }
-/* Prevent SVG containers from having a filled background */
+/* Force SVG rect backgrounds to match page background */
 [data-testid="stToolbar"] svg rect,
 [data-testid="stHeader"] svg rect {
-    fill: transparent !important;
+    fill: #EEF1F0 !important;
 }
 [data-testid="stSidebar"] {
     background-color: #E5E8E7 !important;
