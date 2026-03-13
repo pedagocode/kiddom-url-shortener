@@ -283,6 +283,63 @@ button[data-testid="stBaseButton-primary"]:hover {
     border-bottom-color: #EF6C56 !important;
     color: #EF6C56 !important;
 }
+
+/* ── Streamlit popover / settings menu ─────────────────────────────────────── */
+/* Main menu popover and all Streamlit popovers */
+[data-testid="stMainMenuPopover"],
+[data-testid="stMainMenuPopover"] *,
+[data-testid="stMainMenu"] [role="dialog"],
+[data-testid="stMainMenu"] [role="dialog"] *,
+[data-baseweb="popover"] [role="listbox"],
+[data-baseweb="popover"] [role="listbox"] *,
+div[data-testid="stAppViewBlockContainer"] [data-baseweb="popover"],
+[role="dialog"],
+[role="dialog"] div,
+[role="dialog"] span,
+[role="dialog"] p,
+[role="dialog"] a,
+[role="dialog"] button,
+[role="dialog"] label,
+[role="dialog"] li {
+    background-color: #FFFFFF !important;
+    color: #242D2C !important;
+}
+/* Streamlit theme toggle and menu items */
+[data-testid="stMainMenuPopover"] button,
+[data-testid="stMainMenuPopover"] a,
+[data-testid="stMainMenuPopover"] label,
+[data-testid="stMainMenuPopover"] span,
+[data-testid="stMainMenuPopover"] div,
+[role="dialog"] [data-baseweb="tab"],
+[role="dialog"] [data-baseweb="tab-list"],
+[role="dialog"] [data-baseweb="tab-panel"] {
+    background-color: #FFFFFF !important;
+    color: #242D2C !important;
+}
+/* Menu separators */
+[data-testid="stMainMenuPopover"] hr {
+    border-color: #D0D0D0 !important;
+}
+/* Prevent text overflow in menus */
+[data-testid="stMainMenuPopover"] *,
+[role="dialog"] * {
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+    text-overflow: ellipsis !important;
+}
+
+/* ── Toolbar icon dark-square fix ──────────────────────────────────────────── */
+/* Reset fill on SVG root elements (containers), only fill inner shapes */
+[data-testid="stHeader"] svg,
+[data-testid="stToolbar"] svg {
+    fill: none !important;
+}
+/* Ensure toolbar buttons have transparent backgrounds */
+[data-testid="stToolbar"] button,
+[data-testid="stHeader"] button {
+    background-color: transparent !important;
+}
 </style>
 
 <div class="kiddom-header">
