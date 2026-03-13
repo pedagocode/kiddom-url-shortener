@@ -87,8 +87,99 @@ def shorten_and_deploy(new_entries: list[dict]) -> tuple[bool, str]:
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
-st.set_page_config(page_title="Kiddom URL Shortener", page_icon="🔗", layout="centered")
-st.title("🔗 Kiddom URL Shortener")
+st.set_page_config(page_title="Kiddom ShortURL", layout="centered")
+
+# ── Kiddom branding CSS ──────────────────────────────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+
+/* Global font */
+html, body, [class*="st-"], .stApp, .stMarkdown, input, textarea, select,
+button, .stSelectbox, .stTextInput, .stTabs, .stDataFrame {
+    font-family: 'Lexend', sans-serif !important;
+}
+
+/* Header bar */
+.kiddom-header {
+    background: #EF6C56;
+    padding: 1.5rem 2rem;
+    border-radius: 0 0 16px 16px;
+    margin: -1rem -1rem 1.5rem -1rem;
+    text-align: center;
+}
+.kiddom-header h1 {
+    color: white;
+    font-family: 'Lexend', sans-serif !important;
+    font-weight: 700;
+    font-size: 2rem;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+.kiddom-header p {
+    color: rgba(255,255,255,0.85);
+    font-family: 'Lexend', sans-serif !important;
+    font-size: 0.85rem;
+    margin: 0.25rem 0 0 0;
+    font-weight: 300;
+}
+
+/* Primary buttons */
+.stButton > button[kind="primary"],
+button[data-testid="stBaseButton-primary"] {
+    background-color: #EF6C56 !important;
+    border: none !important;
+    color: white !important;
+    font-family: 'Lexend', sans-serif !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+}
+.stButton > button[kind="primary"]:hover,
+button[data-testid="stBaseButton-primary"]:hover {
+    background-color: #E05A44 !important;
+}
+
+/* Secondary/download buttons */
+.stDownloadButton > button {
+    border-color: #EF6C56 !important;
+    color: #EF6C56 !important;
+    font-family: 'Lexend', sans-serif !important;
+    border-radius: 8px !important;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab"] {
+    font-family: 'Lexend', sans-serif !important;
+    font-weight: 500;
+}
+.stTabs [aria-selected="true"] {
+    border-bottom-color: #EF6C56 !important;
+    color: #EF6C56 !important;
+}
+
+/* Text input focus */
+.stTextInput input:focus {
+    border-color: #EF6C56 !important;
+    box-shadow: 0 0 0 1px #EF6C56 !important;
+}
+
+/* Selectbox */
+.stSelectbox [data-baseweb="select"] > div:first-child:focus-within {
+    border-color: #EF6C56 !important;
+    box-shadow: 0 0 0 1px #EF6C56 !important;
+}
+
+/* Body text color */
+.stApp {
+    color: #3D3D3D;
+}
+</style>
+
+<div class="kiddom-header">
+    <h1>Kiddom ShortURL</h1>
+    <p>Digital forward. Human first.</p>
+</div>
+""", unsafe_allow_html=True)
 
 if not st.secrets.get("GITHUB_TOKEN"):
     st.error(
