@@ -102,20 +102,9 @@ label, p, div, h1, h2, h3, h4, h5, h6 {
     font-family: 'Lexend', sans-serif !important;
     color: #242D2C !important;
 }
-/* Apply Lexend to spans EXCEPT Material Symbols icon spans */
-span:not([class*="material"]):not([data-testid*="Icon"]) {
+/* Apply Lexend to spans too */
+span {
     font-family: 'Lexend', sans-serif !important;
-}
-/* Ensure Material Symbols icons always use their own font */
-span.material-symbols-rounded,
-span.material-symbols-outlined,
-span.material-icons,
-[data-testid="stMainMenuPopover"] span[class*="material"],
-[role="dialog"] span[class*="material"] {
-    font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', 'Material Icons' !important;
-    font-size: 20px !important;
-    -webkit-font-feature-settings: 'liga' !important;
-    font-feature-settings: 'liga' !important;
 }
 
 /* Force light background */
@@ -130,36 +119,9 @@ html, body {
 [data-testid="stHeader"] {
     background-color: transparent !important;
 }
-/* Top-right toolbar: use color inheritance instead of explicit fill/stroke */
-[data-testid="stHeader"] button,
-[data-testid="stHeader"] a,
-[data-testid="stToolbar"] button,
-[data-testid="stToolbar"] a,
-[data-testid="stDecoration"] ~ header button {
-    color: #242D2C !important;
-    background-color: transparent !important;
-}
-/* Let SVGs inherit color via currentColor instead of forcing fill/stroke */
-[data-testid="stHeader"] svg,
-[data-testid="stToolbar"] svg {
-    color: #242D2C !important;
-}
-/* Filled shapes (icons like star, GitHub) use fill */
-[data-testid="stToolbar"] svg path,
-[data-testid="stToolbar"] svg circle,
-[data-testid="stHeader"] svg path,
-[data-testid="stHeader"] svg circle {
-    fill: currentColor !important;
-}
-/* Line-based shapes (hamburger menu icon) use stroke */
-[data-testid="stToolbar"] svg line,
-[data-testid="stHeader"] svg line {
-    stroke: currentColor !important;
-}
-/* Force SVG rect backgrounds to match page background */
-[data-testid="stToolbar"] svg rect,
-[data-testid="stHeader"] svg rect {
-    fill: #EEF1F0 !important;
+/* Hide the entire toolbar (menu button is broken with dark mode OS) */
+[data-testid="stToolbar"] {
+    display: none !important;
 }
 [data-testid="stSidebar"] {
     background-color: #E5E8E7 !important;
@@ -308,66 +270,11 @@ button[data-testid="stBaseButton-primary"]:hover {
     color: #EF6C56 !important;
 }
 
-/* ── Streamlit popover / settings menu ─────────────────────────────────────── */
-/* Main menu popover and all Streamlit popovers */
-[data-testid="stMainMenuPopover"],
-[data-testid="stMainMenuPopover"] *,
-[data-testid="stMainMenu"] [role="dialog"],
-[data-testid="stMainMenu"] [role="dialog"] *,
+/* ── Selectbox dropdown popovers ───────────────────────────────────────────── */
 [data-baseweb="popover"] [role="listbox"],
-[data-baseweb="popover"] [role="listbox"] *,
-div[data-testid="stAppViewBlockContainer"] [data-baseweb="popover"],
-[role="dialog"],
-[role="dialog"] div,
-[role="dialog"] span,
-[role="dialog"] p,
-[role="dialog"] a,
-[role="dialog"] button,
-[role="dialog"] label,
-[role="dialog"] li {
+[data-baseweb="popover"] [role="listbox"] * {
     background-color: #FFFFFF !important;
     color: #242D2C !important;
-}
-/* Streamlit theme toggle and menu items */
-[data-testid="stMainMenuPopover"] button,
-[data-testid="stMainMenuPopover"] a,
-[data-testid="stMainMenuPopover"] label,
-[data-testid="stMainMenuPopover"] span,
-[data-testid="stMainMenuPopover"] div,
-[role="dialog"] [data-baseweb="tab"],
-[role="dialog"] [data-baseweb="tab-list"],
-[role="dialog"] [data-baseweb="tab-panel"] {
-    background-color: #FFFFFF !important;
-    color: #242D2C !important;
-}
-/* Menu separators */
-[data-testid="stMainMenuPopover"] hr {
-    border-color: #D0D0D0 !important;
-}
-/* Hide the theme toggle section entirely (light theme forced via config) */
-[data-testid="stMainMenuPopover"] [data-baseweb="tab-list"],
-[data-testid="stMainMenuPopover"] [data-baseweb="tab-panel"],
-[data-testid="stThemeToggle"],
-[data-testid="stMainMenuPopover"] ul:first-child {
-    display: none !important;
-}
-/* Prevent text overflow in menus */
-[data-testid="stMainMenuPopover"] span,
-[data-testid="stMainMenuPopover"] p,
-[data-testid="stMainMenuPopover"] a,
-[role="dialog"] span,
-[role="dialog"] p,
-[role="dialog"] a {
-    overflow-wrap: break-word !important;
-    word-break: break-word !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    font-size: 0.85rem !important;
-}
-[data-testid="stMainMenuPopover"],
-[role="dialog"] {
-    max-width: 300px !important;
-    overflow: hidden !important;
 }
 
 /* ── Brand decoration SVGs: preserve their own fill/stroke ────────────────── */
