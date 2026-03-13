@@ -95,34 +95,90 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
 
-/* Global font */
+/* Global font and text color */
 html, body, [class*="st-"], .stApp, .stMarkdown, input, textarea, select,
-button, .stSelectbox, .stTextInput, .stTabs, .stDataFrame {
+button, .stSelectbox, .stTextInput, .stTabs, .stDataFrame,
+label, p, span, div, h1, h2, h3, h4, h5, h6 {
     font-family: 'Lexend', sans-serif !important;
+    color: #242D2C !important;
 }
 
-/* Header bar */
+/* Force light background */
+.stApp {
+    background-color: #FEE1F0 !important;
+    color-scheme: light !important;
+}
+html, body {
+    background-color: #FEE1F0 !important;
+    color-scheme: light !important;
+}
+[data-testid="stHeader"] {
+    background-color: transparent !important;
+}
+[data-testid="stSidebar"] {
+    background-color: #F8F0F4 !important;
+}
+
+/* Header bar with logo */
 .kiddom-header {
     background: #EF6C56;
-    padding: 1.5rem 2rem;
+    padding: 1.2rem 2rem;
     border-radius: 0 0 16px 16px;
     margin: -1rem -1rem 1.5rem -1rem;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
-.kiddom-header h1 {
-    color: white;
-    font-family: 'Lexend', sans-serif !important;
+.kiddom-logo {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+.kiddom-header-text h1 {
+    color: white !important;
     font-weight: 700;
-    font-size: 2rem;
+    font-size: 1.8rem;
     margin: 0;
     letter-spacing: -0.5px;
 }
-.kiddom-header p {
-    color: rgba(255,255,255,0.85);
-    font-family: 'Lexend', sans-serif !important;
-    font-size: 0.85rem;
-    margin: 0.25rem 0 0 0;
+.kiddom-header-text p {
+    color: rgba(255,255,255,0.85) !important;
+    font-size: 0.8rem;
+    margin: 0.15rem 0 0 0;
     font-weight: 300;
+}
+
+/* White text inputs */
+.stTextInput input {
+    background-color: #FFFFFF !important;
+    color: #242D2C !important;
+    border: 1px solid #D0D0D0 !important;
+}
+.stTextInput input:focus {
+    border-color: #EF6C56 !important;
+    box-shadow: 0 0 0 1px #EF6C56 !important;
+}
+
+/* White selectbox */
+.stSelectbox [data-baseweb="select"] {
+    background-color: #FFFFFF !important;
+}
+.stSelectbox [data-baseweb="select"] > div {
+    background-color: #FFFFFF !important;
+    color: #242D2C !important;
+    border: 1px solid #D0D0D0 !important;
+}
+.stSelectbox [data-baseweb="select"] > div:focus-within {
+    border-color: #EF6C56 !important;
+    box-shadow: 0 0 0 1px #EF6C56 !important;
+}
+/* Selectbox dropdown menu */
+[data-baseweb="popover"] ul,
+[data-baseweb="menu"] {
+    background-color: #FFFFFF !important;
+}
+[data-baseweb="menu"] li {
+    color: #242D2C !important;
 }
 
 /* Primary buttons */
@@ -131,7 +187,6 @@ button[data-testid="stBaseButton-primary"] {
     background-color: #EF6C56 !important;
     border: none !important;
     color: white !important;
-    font-family: 'Lexend', sans-serif !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
 }
@@ -142,55 +197,33 @@ button[data-testid="stBaseButton-primary"]:hover {
 
 /* Secondary/download buttons */
 .stDownloadButton > button {
+    background-color: #FFFFFF !important;
     border-color: #EF6C56 !important;
     color: #EF6C56 !important;
-    font-family: 'Lexend', sans-serif !important;
     border-radius: 8px !important;
 }
 
 /* Tabs */
 .stTabs [data-baseweb="tab"] {
-    font-family: 'Lexend', sans-serif !important;
     font-weight: 500;
+    color: #242D2C !important;
 }
 .stTabs [aria-selected="true"] {
     border-bottom-color: #EF6C56 !important;
     color: #EF6C56 !important;
 }
-
-/* Text input focus */
-.stTextInput input:focus {
-    border-color: #EF6C56 !important;
-    box-shadow: 0 0 0 1px #EF6C56 !important;
-}
-
-/* Selectbox */
-.stSelectbox [data-baseweb="select"] > div:first-child:focus-within {
-    border-color: #EF6C56 !important;
-    box-shadow: 0 0 0 1px #EF6C56 !important;
-}
-
-/* Force light theme regardless of browser dark mode */
-.stApp {
-    color: #3D3D3D;
-    background-color: #FFFFFF !important;
-    color-scheme: light !important;
-}
-html, body {
-    background-color: #FFFFFF !important;
-    color-scheme: light !important;
-}
-[data-testid="stHeader"] {
-    background-color: #FFFFFF !important;
-}
-[data-testid="stSidebar"] {
-    background-color: #F8F8F8 !important;
-}
 </style>
 
 <div class="kiddom-header">
-    <h1>Kiddom ShortURL</h1>
-    <p>Digital forward. Human first.</p>
+    <svg class="kiddom-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="50" fill="white"/>
+        <text x="50" y="68" text-anchor="middle" fill="#EF6C56"
+              font-family="Lexend, sans-serif" font-weight="700" font-size="60">K</text>
+    </svg>
+    <div class="kiddom-header-text">
+        <h1>Kiddom ShortURL</h1>
+        <p>Digital forward. Human first.</p>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
