@@ -518,5 +518,9 @@
   {
     "short_code": "IM-qrp2jf",
     "original_url": "https://api.kiddom.co/v1/demo/initialize?d=58bf7f58-2b11-4732-b999-c0d5feea26d2&r=demo-teacher"
+  },
+  {
+    "short_code": "IM-bd8wuj",
+    "original_url": "https://atlas-demo.kiddom.co/?toolbar=false&role=teacher&state=responding&theme=light&shell=atlas-kiddom&align=NY-2026&tour=true"
   }
 ]
